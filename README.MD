@@ -24,10 +24,13 @@
 2. Go to project root
 `cd Assignment106
 `
-3. Build project
-`mvn package
+3. Ensure you have correct java on the PATH - JAVA-17
+Exm: `export PATH="C:\Users\Serkan_Sunel\.jdks\corretto-17.0.10\bin":$PATH
 `
-4. Run test cases
+4. Build project
+`mvn clean package
+`
+5. Run test cases
 `mvn test
 `
 
@@ -38,6 +41,14 @@
 
 2. Run the organizational analyser with the path to your CSV file as an argument
 `java -jar target/Assignment106-1.0-SNAPSHOT.jar path/to/your/file.csv`
-
+Exm: `$ java -jar target/Assignment106-1.0-SNAPSHOT.jar C:\\Users\\Serkan_Sunel\\IdeaProjects\\demo\\Assignment106\\src\\main\\resources\\employees.csv
+`
 3. The Application will analyse the data and provide the insights such as salary discrepancies and long reporting lines.
+
+---
+## Sample File Content
+
+Sample file can be  found under **_src/main/resources/employees.csv_**
+
+
 
