@@ -10,10 +10,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class OrganizationalAnalyser {
-    public static final double LOWER_BOUND_PERCENTAGE = 0.2;
-    public static final double UPPER_BOUND_PERCENTAGE = 0.5;
-    private TreeNode ceo;
+    private static final double LOWER_BOUND_PERCENTAGE = 0.2;
+    private static final double UPPER_BOUND_PERCENTAGE = 0.5;
     private final Map<String, Employee> employeeMap = new HashMap<>();
+    private TreeNode ceo;
 
     public record ReportingResult(List<String> salaryReports, List<String> reportingItems) {
     }
@@ -41,63 +41,8 @@ public class OrganizationalAnalyser {
 
     private void readDataFromFile(String filename) throws IOException {
         try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
-            String line;
-            Map<String, Integer> columnIndices = new HashMap<>();
-            if (Objects.nonNull(line = br.readLine())) {
-                String[] headers = line.split(",");
-                List<String> requiredHeaders = Arrays.asList("Id", "firstName", "lastName", "salary", "managerId");
-
-                //check all headers is set
-                Set<String> headerSet = new HashSet<>(Arrays.asList(headers));
-                if (!headerSet.containsAll(requiredHeaders)) {
-                    throw new RuntimeException("Required headers not found in the input");
-                }
-
-                //assign indices based on col header names
-                for (int i = 0; i < headers.length; i++) {
-                    columnIndices.put(headers[i], i);
-                }
-
-            } else {
-                throw new RuntimeException("Check file content!");
-            }
-
-
-            int lineCount = 0;
-            int noManagerEmployeeCount = 0;
-            while ((line = br.readLine()) != null) {
-                lineCount++;
-                if (lineCount > 1000) {
-                    throw new RuntimeException("More than 1000 lines in the input file");
-                }
-
-                String[] data = line.split(",");
-                String id = getColumnValue(data, columnIndices, "Id");
-                String firstName = getColumnValue(data, columnIndices, "firstName");
-                String lastName = getColumnValue(data, columnIndices, "lastName");
-                String salaryStr = getColumnValue(data, columnIndices, "salary");
-                String managerId = getColumnValue(data, columnIndices, "managerId");
-
-                if (id.isEmpty() || firstName.isEmpty() || lastName.isEmpty() || salaryStr.isEmpty()) {
-                    throw new RuntimeException("Missing field for the employee at line " + lineCount);
-                }
-
-                if (managerId.isEmpty()) {
-                    noManagerEmployeeCount++;
-                    if (noManagerEmployeeCount > 1) {
-                        throw new RuntimeException("There cant be more than one ceo in the given file!");
-                    }
-                }
-                int salary = Integer.parseInt(salaryStr);
-                Employee employee = new Employee(id, firstName, lastName, salary, managerId);
-                employeeMap.put(employee.getId(), employee);
-            }
+            createEmployeeMap(br, getColumnIndices(br));
         }
-    }
-
-    private String getColumnValue(String[] data, Map<String, Integer> columnIndices, String columnName) {
-        Integer index = columnIndices.get(columnName);
-        return Objects.nonNull(index) && index < data.length ? data[index] : "";
     }
 
     private List<String> analyseSalaries() {
@@ -187,5 +132,66 @@ public class OrganizationalAnalyser {
         reportingResult.reportingItems().forEach(System.out::println);
     }
 
+    private Map<String, Integer> getColumnIndices(BufferedReader br) throws IOException {
+        String line;
+        Map<String, Integer> columnIndices = new HashMap<>();
+        if (Objects.nonNull(line = br.readLine())) {
+            String[] headers = line.split(",");
+            List<String> requiredHeaders = Arrays.asList("Id", "firstName", "lastName", "salary", "managerId");
+
+            //check all headers is set
+            Set<String> headerSet = new HashSet<>(Arrays.asList(headers));
+            if (!headerSet.containsAll(requiredHeaders)) {
+                throw new RuntimeException("Required headers not found in the input");
+            }
+
+            //assign indices based on col header names
+            for (int i = 0; i < headers.length; i++) {
+                columnIndices.put(headers[i], i);
+            }
+
+        } else {
+            throw new RuntimeException("Check file content!");
+        }
+        return columnIndices;
+    }
+
+    private void createEmployeeMap(BufferedReader br, Map<String, Integer> columnIndices) throws IOException {
+        String line;
+        int lineCount = 0;
+        int noManagerEmployeeCount = 0;
+        while ((line = br.readLine()) != null) {
+            lineCount++;
+            if (lineCount > 1000) {
+                throw new RuntimeException("More than 1000 lines in the input file");
+            }
+
+            String[] data = line.split(",");
+            String id = getColumnValue(data, columnIndices, "Id");
+            String firstName = getColumnValue(data, columnIndices, "firstName");
+            String lastName = getColumnValue(data, columnIndices, "lastName");
+            String salaryStr = getColumnValue(data, columnIndices, "salary");
+            String managerId = getColumnValue(data, columnIndices, "managerId");
+
+            if (id.isEmpty() || firstName.isEmpty() || lastName.isEmpty() || salaryStr.isEmpty()) {
+                throw new RuntimeException("Missing field for the employee at line " + lineCount);
+            }
+
+            if (managerId.isEmpty()) {
+                noManagerEmployeeCount++;
+                if (noManagerEmployeeCount > 1) {
+                    throw new RuntimeException("There cant be more than one ceo in the given file!");
+                }
+            }
+            int salary = Integer.parseInt(salaryStr);
+            Employee employee = new Employee(id, firstName, lastName, salary, managerId);
+            employeeMap.put(employee.getId(), employee);
+        }
+    }
+
+    private String getColumnValue(String[] data, Map<String, Integer> columnIndices, String columnName) {
+        Integer index = columnIndices.get(columnName);
+        return Objects.nonNull(index) && index < data.length ? data[index] : "";
+    }
 
 }
